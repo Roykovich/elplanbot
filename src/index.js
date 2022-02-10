@@ -13,6 +13,8 @@ const client = new Client({
 
 client.commands = new Collection();
 
+require("./events/twitter")(client);
+
 const commandFiles = fs
   .readdirSync("./src/commands")
   .filter((file) => file.endsWith("js"));
