@@ -44,22 +44,49 @@ const accounts = [
   968920691457318914, // Formula_stats history account
 ];
 
-// * CAMBIAR ESTE MODULO PARA QUE SE EJECUTE DE OTRA MANERA
+module.exports = async (client) => {
+  // TODO
+  // https://stackoverflow.com/questions/58355084/how-to-integrate-discord-js-and-twit-with-each-other-for-a-live-twitter-feed-on
 
-module.exports = {
-  name: "tweet",
-  async execute(tweet) {
-    // TODO
-    // https://stackoverflow.com/questions/58355084/how-to-integrate-discord-js-and-twit-with-each-other-for-a-live-twitter-feed-on
+  // Initiate a new Twit instance
+  const Twitter = new Twit({
+    consumer_key,
+    consumer_secret,
+    access_token,
+    access_token_secret,
+  });
 
-    // Initiate a new Twit instance
-    const Twitter = new Twit({
-      consumer_key,
-      consumer_secret,
-      access_token,
-      access_token_secret,
-    });
+  const twitterStream = Twitter.stream("statuses/filter", { follow: accounts });
 
-    const stream = Twitter.stream("statuses/filter", { follow: accounts });
-  },
+  twitterStream.on("tweet", (tweet) => tweetHandler(tweet));
+
+  const tweetHandler = (tweet) => {
+    if (tweet.retweeted || tweet.deleted) return;
+
+    if (tweet.in_reply_to_status_id_str || tweet.in_reply_to_user_id_str)
+      return;
+
+    const theTweet = tweet.extended_tweet ? tweet.extended_tweet : tweet;
+
+    const formatedTweet = {
+      text: he.decode(
+        tweet.extended_tweet ? tweet.extended_tweet.full_text : tweet.text
+      ),
+      url: `https://twitter.com/${tweet.user.screen_name}/status/${tweet.id_str}`,
+      name: he.decode(tweet.user.name),
+      avatar: tweet.user.profile_image_url_https,
+      image:
+        (theTweet.entities.media &&
+          theTweet.entities.media[0].media_url_https) ||
+        null,
+      id: tweet.user.id_str,
+      authorURL: `https://twitter.com/${tweet.user.screen_name}`,
+    };
+
+    sendTweetToChannel(formatedTweet);
+  };
+
+  const sendTweetToChannel = (formatedTweet) => {
+    const { text, url, name, avatar, image, id, authorURL } = formatedTweet;
+  };
 };
