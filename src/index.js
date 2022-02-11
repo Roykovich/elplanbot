@@ -16,7 +16,7 @@ client.commands = new Collection();
 require("./events/twitter")(client);
 
 const commandFiles = fs
-  .readdirSync("./src/commands")
+  .readdirSync("./commands")
   .filter((file) => file.endsWith("js"));
 
 for (const file of commandFiles) {
@@ -26,7 +26,7 @@ for (const file of commandFiles) {
 }
 
 const eventFiles = fs
-  .readdirSync("./src/events")
+  .readdirSync("./events")
   .filter((file) => file.endsWith(".js"));
 
 for (const file of eventFiles) {
