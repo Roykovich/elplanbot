@@ -9,14 +9,23 @@ const commandFiles = fs
   .readdirSync("./commands")
   .filter((file) => file.endsWith(".js"));
 
-const rest = new REST({ version: "9" }).setToken(process.env.TOKEN);
-
 for (const file of commandFiles) {
   const command = require(`./commands/${file}`);
   commands.push(command.data.toJSON());
 }
 
-rest
-  .put(Routes.applicationCommand(process.env.clientId), { body: commands })
-  .then(() => console.log("Succesfully registered application commands,"))
-  .catch(console.error);
+const rest = new REST({ version: "9" }).setToken(process.env.TOKEN);
+
+(async () => {
+  try {
+    console.log("Registering slash commands...");
+
+    await rest.put(Routes.applicationCommands(process.env.clientId), {
+      body: commands,
+    });
+
+    console.log("Successfully registered slash commands!");
+  } catch (error) {
+    console.error(error);
+  }
+})();
