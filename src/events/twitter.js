@@ -1,4 +1,6 @@
 const { MessageEmbed } = require("discord.js");
+const { sendChannelId } = require("../lib/sendChannelId");
+const db = require("quick.db");
 const Twit = require("twit");
 const he = require("he");
 require("dotenv").config();
@@ -8,7 +10,8 @@ const { consumer_key, consumer_secret, access_token, access_token_secret } =
 
 const accounts = [
   "69008563", // F1 official account
-  /* Constructors accounts */ 226087776, // Red Bull
+  /* Constructors accounts */
+  "226087776", // Red Bull
   "108247668", // Ferrari
   "26235265", // Mercedes
   "24871896", // McLaren
@@ -18,7 +21,8 @@ const accounts = [
   "16143542", // Aston Martin,
   "229454266", // Alpha Romeo
   "2303406624", // Haas
-  /* Drivers accounts */ 556260847, // Maxx Verstappen
+  /* Drivers accounts */
+  "556260847", // Maxx Verstappen
   "78502161", // Sergio Perez
   "353786894", // Carlos Sainz
   "262230432", // Charles Leclerc
@@ -65,6 +69,8 @@ module.exports = async (client) => {
     if (tweet.in_reply_to_status_id_str || tweet.in_reply_to_user_id_str)
       return;
 
+    if (tweet.retweeted_status && !accounts.includes(tweet.user.id_str)) return;
+
     const theTweet = tweet.extended_tweet ? tweet.extended_tweet : tweet;
 
     const formatedTweet = {
@@ -93,6 +99,18 @@ module.exports = async (client) => {
       .setDescription(`\n ${text}`)
       .setThumbnail(avatar)
       .setAuthor({ name, iconURL: avatar, url: authorURL })
-      .setImage(image);
+      .setImage(image)
+      .setFooter({ text: url, iconURL: undefined });
+
+    const guilds = db.all();
+
+    for (const guild of guilds) {
+      const _id = guild.ID;
+      if (!db.has(`${_id}.tweetsChannelId`)) continue;
+
+      const channel = db.get(`${_id}.tweetsChannelId`);
+
+      sendChannelId(client, channel, { content: "", embed });
+    }
   };
 };
